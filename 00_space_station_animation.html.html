@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>地球與月球動畫</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0a0a2a;
+            height: 100vh;
+            cursor: none;
+        }
+
+        .star {
+            position: absolute;
+            color: white;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            font-size: var(--size);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--brightness); }
+        }
+
+        #earth-container {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 300px;
+            z-index: 2;
+        }
+
+        #moon {
+            position: fixed;
+            width: 100px;
+            height: auto;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+            z-index: 2;
+        }
+
+        #hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .meteor {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, 
+                                                rgba(255,255,255,1) 50%, 
+                                                rgba(255,255,255,0) 100%);
+            box-shadow: 0 0 10px #fff,
+                       0 0 20px #fff,
+                       0 0 30px #fff;
+            z-index: 2;
+            animation: fall 3s linear;
+        }
+
+        .meteor::before {
+            content: '';
+            position: absolute;
+            width: 100px;  /* 尾巴長度 */
+            height: 1px;   /* 尾巴寬度 */
+            right: 4px;    /* 從流星主體開始 */
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
+            box-shadow: 0 0 10px #fff,
+                       0 0 20px #fff;
+        }
+
+        @keyframes fall {
+            from {
+                transform: translate(0, -50px) rotate(45deg) scale(1);
+            }
+            to {
+                transform: translate(100vh, 100vh) rotate(45deg) scale(2);
+            }
+        }
+
+        .explosion {
+            position: absolute;
+            font-size: 30px;
+            z-index: 3;
+            animation: explode 0.5s linear;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="earth-container">🌍</div>
+    <img id="moon" src="./image/station1.png" alt="Space Station">
+    <audio id="bgMusic" src="./music/音樂.mp3" loop></audio>
+    <div id="hint">點擊畫面開始播放音樂</div>
+
+    <script>
+        const earthPhases = ['🌍', '🌎', '🌏'];
+        let currentEarthPhase = 0;
+        let lastMouseX = 0;
+        
+        const moon = document.getElementById('moon');
+        const earth = document.getElementById('earth-container');
+
+        // 創建星星
+        function createStars(count) {
+            const stars = ['⭐', '✨', '🌟'];
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = stars[Math.floor(Math.random() * stars.length)];
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.setProperty('--duration', `${2 + Math.random() * 4}s`);
+                star.style.setProperty('--brightness', `${0.2 + Math.random() * 0.8}`);
+                star.style.setProperty('--size', `${8 + Math.random() * 12}px`);
+                document.body.appendChild(star);
+            }
+        }
+
+        // 更新地球
+        function updateEarthPhase() {
+            currentEarthPhase = (currentEarthPhase + 1) % earthPhases.length;
+            earth.textContent = earthPhases[currentEarthPhase];
+        }
+
+        // 跟隨滑鼠移動並調整圖層
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            // 判斷移動方向並設定圖層
+            if (x > lastMouseX) {
+                // 向右移動，月亮在地球下方
+                moon.style.zIndex = 1;
+                earth.style.zIndex = 2;
+            } else if (x < lastMouseX) {
+                // 向左移動，月亮在地球上方
+                moon.style.zIndex = 3;
+                earth.style.zIndex = 2;
+            }
+            
+            lastMouseX = x;
+            moon.style.transform = `translate(${x - 100}px, ${y - 100}px)`;
+        });
+
+        // 初始化
+        createStars(50);
+        
+        // 音樂播放控制
+        document.addEventListener('click', () => {
+            const bgMusic = document.getElementById('bgMusic');
+            bgMusic.play();
+            document.getElementById('hint').style.display = 'none';
+        }, { once: true });  // once: true 表示只觸發一次
+
+        // 地球動畫（每秒2次）
+        setInterval(updateEarthPhase, 500);
+
+        // 星星位置更新
+        setInterval(() => {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                if (Math.random() < 0.1) {
+                    star.style.left = `${Math.random() * 100}vw`;
+                    star.style.top = `${Math.random() * 100}vh`;
+                }
+            });
+        }, 5000);
+
+        // 創建流星
+        function createMeteor() {
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor';
+            meteor.style.left = `${Math.random() * 100}vw`;
+            document.body.appendChild(meteor);
+
+            // 監測碰撞
+            const checkCollision = setInterval(() => {
+                const meteorRect = meteor.getBoundingClientRect();
+                const stationRect = moon.getBoundingClientRect();
+
+                // 檢查是否碰撞
+                if (isColliding(meteorRect, stationRect)) {
+                    clearInterval(checkCollision);
+                    createExplosion(meteorRect.left, meteorRect.top);
+                    meteor.remove();
+                }
+            }, 100);
+
+            // 移除超出畫面的流星
+            meteor.addEventListener('animationend', () => {
+                clearInterval(checkCollision);
+                meteor.remove();
+            });
+        }
+
+        // 碰撞檢測
+        function isColliding(rect1, rect2) {
+            return !(rect1.right < rect2.left || 
+                    rect1.left > rect2.right || 
+                    rect1.bottom < rect2.top || 
+                    rect1.top > rect2.bottom);
+        }
+
+        // 創建爆炸效果
+        function createExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            explosion.style.left = `${x}px`;
+            explosion.style.top = `${y}px`;
+            document.body.appendChild(explosion);
+
+            explosion.addEventListener('animationend', () => {
+                explosion.remove();
+            });
+        }
+
+        // 定期產生流星
+        setInterval(createMeteor, 2000);
+    </script>
+</body>
+</html>

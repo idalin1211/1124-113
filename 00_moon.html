@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>月相動畫</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0a0a2a;
+            height: 100vh;
+            cursor: none;
+        }
+
+        .star {
+            position: absolute;
+            color: white;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            font-size: var(--size);
+            opacity: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--brightness); }
+        }
+
+        #moon {
+            position: fixed;
+            font-size: 200px;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="moon">🌑</div>
+
+    <script>
+        // 月相 emoji 陣列
+        const moonPhases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'];
+        let currentPhase = 0;
+        const moon = document.getElementById('moon');
+
+        // 創建星星
+        function createStars(count) {
+            const stars = ['⭐', '✨', '🌟'];
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = stars[Math.floor(Math.random() * stars.length)];
+                
+                // 設定星星的隨機位置
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                
+                // 設定星星的自定義屬性
+                star.style.setProperty('--duration', `${2 + Math.random() * 4}s`);
+                star.style.setProperty('--brightness', `${0.2 + Math.random() * 0.8}`);
+                star.style.setProperty('--size', `${8 + Math.random() * 12}px`);
+                
+                document.body.appendChild(star);
+            }
+        }
+
+        // 更新月相
+        function updateMoonPhase() {
+            currentPhase = (currentPhase + 1) % moonPhases.length;
+            moon.textContent = moonPhases[currentPhase];
+        }
+
+        // 跟隨滑鼠移動
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            moon.style.transform = `translate(${x - 100}px, ${y - 100}px)`;
+        });
+
+        // 初始化
+        createStars(50); // 創建50顆星星
+        
+        // 每200ms更新一次月相（每秒5張）
+        setInterval(updateMoonPhase, 200);
+
+        // 定期重新生成星星
+        setInterval(() => {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                // 隨機更新一些星星的位置
+                if (Math.random() < 0.1) {
+                    star.style.left = `${Math.random() * 100}vw`;
+                    star.style.top = `${Math.random() * 100}vh`;
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Emoji 列表</title>
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 20px;
+        }
+        .emoji-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .emoji-item:hover {
+            background-color: #f0f0f0;
+        }
+        .emoji {
+            font-size: 2em;
+        }
+        .code {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="emojiContainer"></div>
+
+    <script>
+        function createEmojiList() {
+            const container = document.getElementById('emojiContainer');
+            
+            // 遍歷大範圍的 Unicode 編碼來找出 emoji
+            for (let i = 0x1F300; i <= 0x1F9FF; i++) {
+                try {
+                    const emoji = String.fromCodePoint(i);
+                    const div = document.createElement('div');
+                    div.className = 'emoji-item';
+                    
+                    const emojiSpan = document.createElement('span');
+                    emojiSpan.className = 'emoji';
+                    emojiSpan.textContent = emoji;
+                    
+                    const codeSpan = document.createElement('span');
+                    codeSpan.className = 'code';
+                    codeSpan.textContent = 'U+' + i.toString(16).toUpperCase();
+                    
+                    div.appendChild(emojiSpan);
+                    div.appendChild(codeSpan);
+                    
+                    // 添加點擊事件來複製 emoji
+                    div.onclick = async () => {
+                        try {
+                            await navigator.clipboard.writeText(emoji);
+                            alert('已複製到剪貼簿！');
+                        } catch (err) {
+                            alert('複製失敗：' + err);
+                        }
+                    };
+                    
+                    container.appendChild(div);
+                } catch (e) {
+                    continue; // 跳過無效的 Unicode 編碼
+                }
+            }
+        }
+
+        // 當頁面載入完成後執行
+        window.onload = createEmojiList;
+    </script>
+</body>
+</html>

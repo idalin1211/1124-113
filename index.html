@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>WebAI 示範專案</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .project-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .project-item {
+            background-color: white;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .project-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .project-link {
+            display: block;
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 10px;
+        }
+
+        .project-link:hover {
+            color: #1976D2;
+        }
+
+        .category {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .category-title {
+            color: #444;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebAI 示範專案</h1>
+
+    <div class="category">
+        <h2 class="category-title">動畫效果</h2>
+        <ul class="project-list">
+            <li class="project-item">
+                <a href="00_space_station_animation.html.html" class="project-link">太空站動畫</a>
+            </li>
+            <li class="project-item">
+                <a href="00_moon.html" class="project-link">月相動畫</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="category">
+        <h2 class="category-title">物理模擬</h2>
+        <ul class="project-list">
+            <li class="project-item">
+                <a href="00_物理物體.html" class="project-link">物理物體生成器</a>
+            </li>
+            <li class="project-item">
+                <a href="00_約束.html" class="project-link">Matter.js 約束示範</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="category">
+        <h2 class="category-title">AI 與互動</h2>
+        <ul class="project-list">
+            <li class="project-item">
+                <a href="00_特效.html" class="project-link">MediaPipe 人臉特效</a>
+            </li>
+            <li class="project-item">
+                <a href="00_手部玩球.html" class="project-link">手部追蹤互動</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="category">
+        <h2 class="category-title">其他工具</h2>
+        <ul class="project-list">
+            <li class="project-item">
+                <a href="00_emoji.html" class="project-link">Emoji 列表工具</a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

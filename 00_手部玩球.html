@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>手部互動物理效果</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <video id="video" style="display: none;"></video>
+    <canvas id="canvas"></canvas>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// 設置畫布大小
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Matter.js 初始化
+const Engine = Matter.Engine,
+    Render = Matter.Render,
+    World = Matter.World,
+    Bodies = Matter.Bodies,
+    Constraint = Matter.Constraint;
+
+const engine = Engine.create();
+const render = Render.create({
+    canvas: canvas,
+    engine: engine,
+    options: {
+        width: canvas.width,
+        height: canvas.height,
+        wireframes: false,
+        background: 'transparent',
+        pixelRatio: 1
+    }
+});
+
+// 建立邊界
+const walls = [
+    Bodies.rectangle(canvas.width/2, -10, canvas.width, 20, { isStatic: true }),
+    Bodies.rectangle(canvas.width/2, canvas.height+10, canvas.width, 20, { isStatic: true }),
+    Bodies.rectangle(-10, canvas.height/2, 20, canvas.height, { isStatic: true }),
+    Bodies.rectangle(canvas.width+10, canvas.height/2, 20, canvas.height, { isStatic: true })
+];
+World.add(engine.world, walls);
+
+// 產生隨機彩球
+const balls = [];
+for(let i = 0; i < 100; i++) {
+    const size = Math.random() * 30 + 40;
+    const ball = Bodies.circle(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height,
+        size/2,
+        {
+            render: {
+                fillStyle: `hsl(${Math.random()*360}, 80%, 50%)`
+            }
+        }
+    );
+    balls.push(ball);
+}
+World.add(engine.world, balls);S
+
+// 手部節點和約束
+const handSets = [
+    {
+        landmarks: Array(21).fill().map(() => ({x: 0, y: 0})),
+        points: Array(21).fill().map(() => 
+            Bodies.circle(0, 0, 10, { isStatic: true, render: { visible: false } })
+        ),
+        constraints: []
+    },
+    {
+        landmarks: Array(21).fill().map(() => ({x: 0, y: 0})),
+        points: Array(21).fill().map(() => 
+            Bodies.circle(0, 0, 10, { isStatic: true, render: { visible: false } })
+        ),
+        constraints: []
+    }
+];
+
+// 為每隻手建立約束
+handSets.forEach(hand => {
+    connections.forEach(([i, j]) => {
+        const constraint = Constraint.create({
+            bodyA: hand.points[i],
+            bodyB: hand.points[j],
+            stiffness: 0.1,
+            render: {
+                strokeStyle: '#fff',
+                lineWidth: 20
+            }
+        });
+        hand.constraints.push(constraint);
+    });
+});
+
+// 將所有手部物件加入世界
+handSets.forEach(hand => {
+    World.add(engine.world, [...hand.points, ...hand.constraints]);
+});
+
+// 手部追蹤設置
+const hands = new Hands({locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+}});
+
+hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
+
+let videoCanvas = document.createElement('canvas');
+videoCanvas.width = canvas.width;
+videoCanvas.height = canvas.height;
+let videoCtx = videoCanvas.getContext('2d');
+
+hands.onResults(results => {
+    // 更新每隻手的位置
+    results.multiHandLandmarks.forEach((handLandmarks, handIndex) => {
+        if (handIndex < 2) {  // 確保只處理兩隻手
+            handLandmarks.forEach((landmark, index) => {
+                handSets[handIndex].landmarks[index] = {
+                    x: (1 - landmark.x) * canvas.width,
+                    y: landmark.y * canvas.height
+                };
+                Matter.Body.setPosition(
+                    handSets[handIndex].points[index], 
+                    handSets[handIndex].landmarks[index]
+                );
+            });
+        }
+    });
+});
+
+// 新增：分開處理攝影機畫面的繪製
+function drawVideoFrame() {
+    videoCtx.save();
+    // 水平翻轉畫面
+    videoCtx.scale(-1, 1);
+    videoCtx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    videoCtx.restore();
+    
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.drawImage(videoCanvas, 0, 0);
+    requestAnimationFrame(drawVideoFrame);
+}
+
+// 修改攝影機啟動部分
+const camera = new Camera(video, {
+    onFrame: async () => {
+        await hands.send({image: video});
+    },
+    width: 1280,
+    height: 720
+});
+
+camera.start().then(() => {
+    drawVideoFrame();  // 在攝影機啟動後開始繪製
+});
+
+// 開始物理引擎
+Engine.run(engine);
+Render.run(render);
+</script>
+</body>
+</html>
